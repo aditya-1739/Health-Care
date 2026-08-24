@@ -8,8 +8,19 @@ export function RoleSelectionPage() {
   return (
     <div className="role-selection-wrapper">
       {/* Top Back Link */}
-      <div style={{ marginBottom: '1.5rem' }}>
-        <Link to="/" style={{ color: 'var(--primary)', fontWeight: 600, fontSize: '0.9rem', display: 'inline-flex', alignItems: 'center', gap: '0.35rem', textDecoration: 'none' }}>
+      <div style={{ marginBottom: '2rem' }}>
+        <Link
+          to="/"
+          style={{
+            color: 'var(--text-muted)',
+            fontWeight: 600,
+            fontSize: '0.875rem',
+            display: 'inline-flex',
+            alignItems: 'center',
+            gap: '0.35rem',
+            textDecoration: 'none',
+          }}
+        >
           ← Back to Homepage
         </Link>
       </div>
@@ -21,128 +32,87 @@ export function RoleSelectionPage() {
       )}
 
       {/* Header */}
-      <div style={{ textAlign: 'center', marginBottom: '2.5rem' }}>
-        <h1 style={{ fontSize: '2.4rem', fontWeight: 800, marginBottom: '0.6rem', color: 'var(--text-main)', letterSpacing: '-0.02em' }}>
-          Healthcare Portal Sign In
-        </h1>
-        <p style={{ color: 'var(--text-muted)', fontSize: '1.05rem', maxWidth: '580px', margin: '0 auto', lineHeight: 1.6 }}>
-          Select your portal to access your personalized appointment scheduling, clinical workflow, or administration console.
-        </p>
+      <div className="role-selection-header">
+        <h1>Choose your portal</h1>
+        <p>Select how you want to access the platform.</p>
       </div>
 
-      {/* 1. VISUALLY DOMINANT FEATURED PATIENT CARD */}
-      <div className="patient-featured-card">
-        <div>
-          <div style={{ display: 'inline-flex', alignItems: 'center', gap: '0.4rem', background: 'var(--teal-light)', color: 'var(--secondary-dark)', border: '1px solid var(--teal-border)', borderRadius: 'var(--radius-full)', padding: '0.3rem 0.8rem', fontSize: '0.78rem', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.04em', marginBottom: '1rem' }}>
-            <span>🌟</span> Most Popular • Patients & Families
-          </div>
-
-          <h2 style={{ fontSize: '1.75rem', fontWeight: 800, marginBottom: '0.6rem', color: 'var(--text-main)', letterSpacing: '-0.01em' }}>
-            Patient Portal
-          </h2>
-
-          <p style={{ color: 'var(--text-muted)', fontSize: '0.975rem', lineHeight: 1.6, marginBottom: '1.25rem' }}>
-            Find certified doctors, schedule consultation slots with temporary holds, submit pre-visit symptoms, and access structured digital prescriptions and medical history.
-          </p>
-
-          <ul style={{ listStyle: 'none', padding: 0, margin: '0 0 1.25rem 0', display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: '0.6rem', fontSize: '0.875rem', color: 'var(--text-main)' }}>
-            <li style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
-              <span className="trust-check" style={{ width: '20px', height: '20px', fontSize: '0.7rem' }}>✓</span> Real-time slot booking
-            </li>
-            <li style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
-              <span className="trust-check" style={{ width: '20px', height: '20px', fontSize: '0.7rem' }}>✓</span> Pre-visit symptom intake
-            </li>
-            <li style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
-              <span className="trust-check" style={{ width: '20px', height: '20px', fontSize: '0.7rem' }}>✓</span> Digital prescription vault
-            </li>
-            <li style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
-              <span className="trust-check" style={{ width: '20px', height: '20px', fontSize: '0.7rem' }}>✓</span> Personal medical profile
-            </li>
-          </ul>
-        </div>
-
-        <div style={{ background: '#f8fafc', padding: '1.75rem', borderRadius: 'var(--radius-lg)', border: '1px solid var(--border)', display: 'flex', flexDirection: 'column', gap: '1rem', textAlign: 'center' }}>
-          <div style={{ width: '56px', height: '56px', borderRadius: '50%', background: 'var(--primary-light)', color: 'var(--primary-dark)', display: 'flex', alignItems: 'center', justifyContent: 'center', margin: '0 auto', fontSize: '1.75rem' }}>
-            👤
-          </div>
-          <Link to="/login?role=patient" className="btn btn-primary btn-lg" style={{ width: '100%', fontWeight: 700 }}>
-            Sign In as Patient →
-          </Link>
-          <div style={{ fontSize: '0.85rem', color: 'var(--text-muted)' }}>
-            New patient?{' '}
-            <Link to="/register" style={{ color: 'var(--primary)', fontWeight: 700, textDecoration: 'none' }}>
-              Register account
-            </Link>
-          </div>
-        </div>
-      </div>
-
-      {/* 2. SECONDARY CLINICAL & ADMINISTRATIVE STAFF STRIP */}
-      <div className="staff-section-divider">
-        <hr />
-        <span style={{ fontSize: '0.85rem', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.08em', color: 'var(--text-muted)', background: 'var(--bg-main)', padding: '0 0.5rem' }}>
-          Healthcare Practitioners & Staff
-        </span>
-        <hr />
-      </div>
-
-      <div className="grid-2" style={{ gap: '1.5rem' }}>
-        {/* Doctor Console Card */}
-        <div className="staff-card">
+      {/* 3 Balanced Role Cards */}
+      <div className="roles-grid-3">
+        {/* Patient Card */}
+        <div className="role-card">
           <div>
-            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1rem' }}>
-              <div style={{ width: '42px', height: '42px', borderRadius: 'var(--radius-md)', background: 'var(--teal-light)', color: 'var(--secondary-dark)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '1.3rem' }}>
-                🩺
-              </div>
-              <span className="user-badge badge-doctor" style={{ fontSize: '0.75rem' }}>
-                Practitioner Access
-              </span>
+            <div className="role-card-icon role-icon-patient">
+              <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2" />
+                <circle cx="12" cy="7" r="4" />
+              </svg>
             </div>
-
-            <h3 style={{ fontSize: '1.25rem', fontWeight: 700, marginBottom: '0.4rem', color: 'var(--text-main)' }}>
-              Doctor Console
-            </h3>
-            <p style={{ color: 'var(--text-muted)', fontSize: '0.875rem', lineHeight: 1.5, marginBottom: '1.25rem' }}>
-              Review assigned patient queues, inspect AI pre-visit clinical summaries, author structured digital prescriptions, and manage working hours.
+            <h2 className="role-card-title">Patient</h2>
+            <p className="role-card-desc">
+              Manage appointments, medicines and health information.
             </p>
           </div>
 
           <div>
-            <Link to="/login?role=doctor" className="btn btn-teal btn-block" style={{ fontWeight: 600 }}>
-              Sign In as Doctor →
+            <Link to="/login?role=patient" className="btn btn-primary role-card-btn">
+              Continue as Patient →
             </Link>
-            <div style={{ marginTop: '0.75rem', textAlign: 'center', fontSize: '0.775rem', color: 'var(--text-muted)' }}>
-              Staff accounts are provisioned by hospital administrators
+            <div style={{ marginTop: '0.75rem', textAlign: 'center', fontSize: '0.8rem', color: 'var(--text-muted)' }}>
+              New patient?{' '}
+              <Link to="/register" style={{ color: 'var(--primary)', fontWeight: 600, textDecoration: 'none' }}>
+                Register here
+              </Link>
             </div>
           </div>
         </div>
 
-        {/* Admin Console Card */}
-        <div className="staff-card">
+        {/* Doctor Card */}
+        <div className="role-card">
           <div>
-            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1rem' }}>
-              <div style={{ width: '42px', height: '42px', borderRadius: 'var(--radius-md)', background: '#f5f3ff', color: '#6d28d9', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '1.3rem' }}>
-                ⚙️
-              </div>
-              <span className="user-badge badge-admin" style={{ fontSize: '0.75rem' }}>
-                Staff Clearance
-              </span>
+            <div className="role-card-icon role-icon-doctor">
+              <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                <path d="M4.8 2.3A.3.3 0 1 0 5 2H4a2 2 0 0 0-2 2v5a6 6 0 0 0 6 6v0a6 6 0 0 0 6-6V4a2 2 0 0 0-2-2h-1a.2.2 0 1 0 .3.3" />
+                <path d="M8 15v1a6 6 0 0 0 6 6v0a6 6 0 0 0 6-6v-4" />
+                <circle cx="20" cy="10" r="2" />
+              </svg>
             </div>
-
-            <h3 style={{ fontSize: '1.25rem', fontWeight: 700, marginBottom: '0.4rem', color: 'var(--text-main)' }}>
-              Admin Console
-            </h3>
-            <p style={{ color: 'var(--text-muted)', fontSize: '0.875rem', lineHeight: 1.5, marginBottom: '1.25rem' }}>
-              Provision practitioner staff profiles, manage user directories, review leave requests, and inspect reliability metrics and audit logs.
+            <h2 className="role-card-title">Doctor</h2>
+            <p className="role-card-desc">
+              Manage consultations, patients and prescriptions.
             </p>
           </div>
 
           <div>
-            <Link to="/login?role=admin" className="btn btn-secondary btn-block" style={{ fontWeight: 600 }}>
-              Sign In as Admin →
+            <Link to="/login?role=doctor" className="btn btn-teal role-card-btn">
+              Continue as Doctor →
             </Link>
             <div style={{ marginTop: '0.75rem', textAlign: 'center', fontSize: '0.775rem', color: 'var(--text-muted)' }}>
-              Root administrative authorization required
+              Practitioner account required
+            </div>
+          </div>
+        </div>
+
+        {/* Admin Card */}
+        <div className="role-card">
+          <div>
+            <div className="role-card-icon role-icon-admin">
+              <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z" />
+              </svg>
+            </div>
+            <h2 className="role-card-title">Administrator</h2>
+            <p className="role-card-desc">
+              Manage users, doctors and the platform.
+            </p>
+          </div>
+
+          <div>
+            <Link to="/login?role=admin" className="btn btn-secondary role-card-btn">
+              Continue as Admin →
+            </Link>
+            <div style={{ marginTop: '0.75rem', textAlign: 'center', fontSize: '0.775rem', color: 'var(--text-muted)' }}>
+              Administrative clearance required
             </div>
           </div>
         </div>

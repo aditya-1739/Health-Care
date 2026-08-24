@@ -37,8 +37,8 @@ export function RegisterPage() {
       });
       setSuccess(true);
       setTimeout(() => {
-        navigate('/login');
-      }, 1800);
+        navigate('/login?role=patient');
+      }, 1500);
     } catch (err) {
       setError(err.message || 'Registration failed. Please verify your details.');
     } finally {
@@ -48,20 +48,57 @@ export function RegisterPage() {
 
   return (
     <div className="auth-container">
-      <div className="auth-card" style={{ maxWidth: '500px' }}>
-        <div className="auth-header">
-          <h1>Patient Registration</h1>
-          <p>Create your patient portal account to schedule appointments</p>
+      <div className="auth-card" style={{ maxWidth: '480px' }}>
+        {/* Back Link */}
+        <div style={{ marginBottom: '1.25rem' }}>
+          <Link
+            to="/roles"
+            style={{
+              color: 'var(--text-muted)',
+              fontSize: '0.85rem',
+              fontWeight: 600,
+              textDecoration: 'none',
+              display: 'inline-flex',
+              alignItems: 'center',
+              gap: '0.35rem',
+            }}
+          >
+            ← Back to Portal Selection
+          </Link>
+        </div>
+
+        <div className="auth-header" style={{ textAlign: 'left', marginBottom: '1.5rem' }}>
+          <span
+            style={{
+              display: 'inline-block',
+              background: '#eff6ff',
+              color: '#2563eb',
+              fontSize: '0.78rem',
+              fontWeight: 700,
+              padding: '3px 10px',
+              borderRadius: '6px',
+              marginBottom: '0.5rem',
+              letterSpacing: '0.02em',
+            }}
+          >
+            Patient Registration
+          </span>
+          <h1 style={{ fontSize: '1.65rem', fontWeight: 800, margin: '0 0 0.35rem 0', color: 'var(--text-main)' }}>
+            Create Patient Account
+          </h1>
+          <p style={{ color: 'var(--text-muted)', fontSize: '0.9rem', margin: 0 }}>
+            Sign up to schedule doctor appointments and manage your health.
+          </p>
         </div>
 
         {error && (
-          <div className="alert alert-error" role="alert">
+          <div className="alert alert-error" role="alert" style={{ marginBottom: '1.25rem', fontSize: '0.875rem', padding: '0.75rem 1rem' }}>
             {error}
           </div>
         )}
 
         {success && (
-          <div className="alert alert-success" role="status">
+          <div className="alert alert-success" role="status" style={{ marginBottom: '1.25rem', fontSize: '0.875rem', padding: '0.75rem 1rem' }}>
             Registration successful! Redirecting to sign in...
           </div>
         )}
@@ -89,7 +126,7 @@ export function RegisterPage() {
               className="form-input"
               value={email}
               onChange={(e) => setEmail(e.target.value)}
-              placeholder="e.g. john.doe@example.com"
+              placeholder="name@example.com"
               autoComplete="email"
               required
             />
@@ -131,7 +168,7 @@ export function RegisterPage() {
             </div>
           </div>
 
-          <div className="grid-2">
+          <div className="grid-2" style={{ gap: '1rem' }}>
             <div className="form-group">
               <label className="form-label" htmlFor="phone">Phone Number</label>
               <input
@@ -140,7 +177,7 @@ export function RegisterPage() {
                 className="form-input"
                 value={phone}
                 onChange={(e) => setPhone(e.target.value)}
-                placeholder="+1 555 0123"
+                placeholder="+1 (555) 000-0000"
                 autoComplete="tel"
               />
             </div>
@@ -160,16 +197,16 @@ export function RegisterPage() {
             type="submit"
             className="btn btn-primary btn-block"
             disabled={loading || success}
-            style={{ marginTop: '1rem' }}
+            style={{ marginTop: '1.25rem', padding: '0.75rem', fontSize: '1rem', fontWeight: 600 }}
           >
             {loading ? 'Creating Account...' : 'Register Account'}
           </button>
         </form>
 
         <div style={{ marginTop: '1.5rem', textAlign: 'center', fontSize: '0.875rem' }}>
-          <p style={{ color: 'var(--text-muted)' }}>
+          <p style={{ color: 'var(--text-muted)', margin: 0 }}>
             Already have an account?{' '}
-            <Link to="/login" style={{ color: 'var(--primary)', fontWeight: 600, textDecoration: 'none' }}>
+            <Link to="/login?role=patient" style={{ color: 'var(--primary)', fontWeight: 600, textDecoration: 'none' }}>
               Sign In
             </Link>
           </p>

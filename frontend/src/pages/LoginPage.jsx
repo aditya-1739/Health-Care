@@ -6,6 +6,7 @@ export function LoginPage() {
   const [searchParams] = useSearchParams();
   const roleParam = (searchParams.get('role') || '').toLowerCase();
 
+  // Strictly empty initial credentials (no demo prefill)
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [showPassword, setShowPassword] = useState(false);
@@ -20,7 +21,7 @@ export function LoginPage() {
       case 'patient':
         return {
           title: 'Patient Sign In',
-          subtitle: 'Access your patient scheduling & medication portal',
+          subtitle: 'Access your appointments and health information.',
           badgeColor: '#eff6ff',
           badgeText: 'Patient Portal',
           textColor: '#2563eb',
@@ -28,7 +29,7 @@ export function LoginPage() {
       case 'doctor':
         return {
           title: 'Doctor Sign In',
-          subtitle: 'Access your clinical consultations & prescription console',
+          subtitle: 'Access your consultations and clinical workspace.',
           badgeColor: '#ecfdf5',
           badgeText: 'Doctor Console',
           textColor: '#059669',
@@ -36,17 +37,17 @@ export function LoginPage() {
       case 'admin':
         return {
           title: 'Administrator Sign In',
-          subtitle: 'Access system operations and staff administration',
+          subtitle: 'Manage the healthcare platform.',
           badgeColor: '#f5f3ff',
           badgeText: 'Admin Console',
           textColor: '#7c3aed',
         };
       default:
         return {
-          title: 'Healthcare Sign In',
-          subtitle: 'Access your healthcare portal account',
+          title: 'Sign In',
+          subtitle: 'Access your healthcare account.',
           badgeColor: '#f1f5f9',
-          badgeText: 'Portal Login',
+          badgeText: 'Healthcare Portal',
           textColor: '#475569',
         };
     }
@@ -61,7 +62,7 @@ export function LoginPage() {
 
     try {
       const user = await login(email.trim(), password);
-      // Route based on authentic backend-verified role
+      // Route based strictly on backend-verified authority
       if (user.role === 'PATIENT') {
         navigate('/patient/dashboard');
       } else if (user.role === 'DOCTOR') {
@@ -72,16 +73,16 @@ export function LoginPage() {
         navigate('/');
       }
     } catch (err) {
-      setError(err.message || 'Login failed. Please check your email and password.');
+      setError(err.message || 'Incorrect email or password. Please try again.');
     } finally {
       setLoading(false);
     }
   };
 
   return (
-    <div className="auth-container" style={{ padding: '2rem 1rem' }}>
-      <div className="auth-card" style={{ maxWidth: '440px' }}>
-        {/* Back to Portal Selection */}
+    <div className="auth-container">
+      <div className="auth-card">
+        {/* Back Link */}
         <div style={{ marginBottom: '1.25rem' }}>
           <Link
             to="/roles"
@@ -99,22 +100,24 @@ export function LoginPage() {
           </Link>
         </div>
 
+        {/* Header */}
         <div className="auth-header" style={{ textAlign: 'left', marginBottom: '1.5rem' }}>
           <span
             style={{
               display: 'inline-block',
               background: headerInfo.badgeColor,
               color: headerInfo.textColor,
-              fontSize: '0.8rem',
+              fontSize: '0.78rem',
               fontWeight: 700,
               padding: '3px 10px',
               borderRadius: '6px',
-              marginBottom: '0.6rem',
+              marginBottom: '0.5rem',
+              letterSpacing: '0.02em',
             }}
           >
             {headerInfo.badgeText}
           </span>
-          <h1 style={{ fontSize: '1.75rem', fontWeight: 800, margin: '0 0 0.35rem 0', color: 'var(--text-main)' }}>
+          <h1 style={{ fontSize: '1.65rem', fontWeight: 800, margin: '0 0 0.35rem 0', color: 'var(--text-main)' }}>
             {headerInfo.title}
           </h1>
           <p style={{ color: 'var(--text-muted)', fontSize: '0.9rem', margin: 0 }}>
@@ -123,7 +126,7 @@ export function LoginPage() {
         </div>
 
         {error && (
-          <div className="alert alert-error" role="alert" style={{ marginBottom: '1.25rem' }}>
+          <div className="alert alert-error" role="alert" style={{ marginBottom: '1.25rem', fontSize: '0.875rem', padding: '0.75rem 1rem' }}>
             {error}
           </div>
         )}
@@ -137,7 +140,7 @@ export function LoginPage() {
               className="form-input"
               value={email}
               onChange={(e) => setEmail(e.target.value)}
-              placeholder="e.g. user@example.com"
+              placeholder="name@example.com"
               autoComplete="email"
               required
             />
@@ -190,15 +193,15 @@ export function LoginPage() {
 
         <div style={{ marginTop: '1.5rem', textAlign: 'center', fontSize: '0.875rem' }}>
           {roleParam === 'patient' || !roleParam ? (
-            <p style={{ color: 'var(--text-muted)' }}>
+            <p style={{ color: 'var(--text-muted)', margin: 0 }}>
               New patient?{' '}
               <Link to="/register" style={{ color: 'var(--primary)', fontWeight: 600, textDecoration: 'none' }}>
                 Create an account
               </Link>
             </p>
           ) : (
-            <p style={{ fontSize: '0.8rem', color: 'var(--text-light)', margin: 0 }}>
-              Doctor & Admin accounts are managed by system administrators.
+            <p style={{ fontSize: '0.8rem', color: 'var(--text-muted)', margin: 0 }}>
+              Staff accounts are managed by system administrators.
             </p>
           )}
         </div>
