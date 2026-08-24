@@ -1,0 +1,106 @@
+# =============================================================================
+# Production Docker Compose Configuration
+# SECURITY GUARANTEES:
+# - PostgreSQL and Redis are NOT exposed to the public host; strictly internal network.
+# - Backend and Worker run as non-root users.
+# - Healthchecks gate service dependencies.
+# =============================================================================
+
+services:
+  postgres:
+    image: postgres:16-alpine
+    container_name: prod_healthcare_postgres
+    restart: always
+    environment:
+      POSTGRES_USER: ${POSTGRES_USER:-postgres}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:?POSTGRES_PASSWORD is required}
+      POSTGRES_DB: ${POSTGRES_DB:-healthcare_db}
+    # Notice: NO ports published to public host in production
+    volumes:
+      - prod_postgres_data:/var/lib/postgresql/data
+    networks:
+      - internal_net
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres -d healthcare_db"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  redis:
+    image: redis:7-alpine
+    container_name: prod_healthcare_redis
+    restart: always
+    # Notice: NO ports published to public host in production
+    volumes:
+      - prod_redis_data:/data
+    networks:
+      - internal_net
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  backend:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+    container_name: prod_healthcare_backend
+    restart: always
+    env_file:
+      - .env
+    environment:
+      ENVIRONMENT: production
+      DATABASE_URL: postgresql://${POSTGRES_USER:-postgres}:${POSTGRES_PASSWORD}@postgres:5432/${POSTGRES_DB:-healthcare_db}
+      REDIS_URL: redis://redis:6379/0
+      CELERY_BROKER_URL: redis://redis:6379/0
+    networks:
+      - internal_net
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+
+  worker:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+    container_name: prod_healthcare_celery_worker
+    restart: always
+    command: ["celery", "-A", "app.worker.celery_app", "worker", "--loglevel=warning", "--concurrency=4"]
+    env_file:
+      - .env
+    environment:
+      ENVIRONMENT: production
+      DATABASE_URL: postgresql://${POSTGRES_USER:-postgres}:${POSTGRES_PASSWORD}@postgres:5432/${POSTGRES_DB:-healthcare_db}
+      REDIS_URL: redis://redis:6379/0
+      CELERY_BROKER_URL: redis://redis:6379/0
+    networks:
+      - internal_net
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+
+  frontend:
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile
+    container_name: prod_healthcare_frontend
+    restart: always
+    ports:
+      - "80:80"
+    networks:
+      - internal_net
+    depends_on:
+      - backend
+
+networks:
+  internal_net:
+    driver: bridge
+
+volumes:
+  prod_postgres_data:
+  prod_redis_data:
