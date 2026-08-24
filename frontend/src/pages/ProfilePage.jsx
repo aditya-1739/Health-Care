@@ -1,11 +1,12 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { useSearchParams, useNavigate, Link } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import { profileApi, formatApiError } from '../api/client';
 import { formatDoctorName } from '../utils/format';
+import { ProfileAvatar } from '../components/ProfileAvatar';
 
 export function ProfilePage() {
-  const { user, logout } = useAuth();
+  const { user, logout, updateUser } = useAuth();
   const [searchParams, setSearchParams] = useSearchParams();
   const navigate = useNavigate();
 
@@ -15,6 +16,12 @@ export function ProfilePage() {
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState(null);
   const [successMsg, setSuccessMsg] = useState(null);
+
+  // Avatar upload state
+  const [selectedFile, setSelectedFile] = useState(null);
+  const [previewUrl, setPreviewUrl] = useState(null);
+  const [uploadingAvatar, setUploadingAvatar] = useState(false);
+  const fileInputRef = useRef(null);
 
   // Profile data
   const [profileData, setProfileData] = useState({
@@ -33,6 +40,7 @@ export function ProfilePage() {
     bio: '',
     slot_duration: 30,
     created_at: '',
+    profile_image_url: null,
   });
 
   // Medical profile data
@@ -90,6 +98,7 @@ export function ProfilePage() {
         bio: p.bio || '',
         slot_duration: p.slot_duration || 30,
         created_at: p.created_at || '',
+        profile_image_url: p.profile_image_url || null,
       });
 
       if (p.role === 'PATIENT') {
@@ -227,6 +236,77 @@ export function ProfilePage() {
     } catch (err) {
       setError(formatApiError(err));
       setSaving(false);
+    }
+  };
+
+  const handleFileSelect = (e) => {
+    setError(null);
+    setSuccessMsg(null);
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    if (file.size > 5 * 1024 * 1024) {
+      setError('Image must be smaller than 5 MB.');
+      if (fileInputRef.current) fileInputRef.current.value = '';
+      return;
+    }
+
+    const validTypes = ['image/jpeg', 'image/jpg', 'image/png', 'image/webp'];
+    if (!validTypes.includes(file.type)) {
+      setError('Please choose a JPG, PNG, or WebP image.');
+      if (fileInputRef.current) fileInputRef.current.value = '';
+      return;
+    }
+
+    setSelectedFile(file);
+    const objUrl = URL.createObjectURL(file);
+    setPreviewUrl(objUrl);
+  };
+
+  const handleCancelPreview = () => {
+    if (previewUrl) URL.revokeObjectURL(previewUrl);
+    setPreviewUrl(null);
+    setSelectedFile(null);
+    if (fileInputRef.current) fileInputRef.current.value = '';
+  };
+
+  const handleUploadAvatar = async () => {
+    if (!selectedFile) return;
+    setUploadingAvatar(true);
+    setError(null);
+    setSuccessMsg(null);
+
+    const formData = new FormData();
+    formData.append('file', selectedFile);
+
+    try {
+      const updated = await profileApi.uploadAvatar(formData);
+      updateUser({ ...user, profile_image_url: updated.profile_image_url });
+      setProfileData((prev) => ({ ...prev, profile_image_url: updated.profile_image_url }));
+      handleCancelPreview();
+      setSuccessMsg('Profile picture updated successfully.');
+    } catch (err) {
+      setError(formatApiError(err) || 'Could not update your profile picture. Please try again.');
+    } finally {
+      setUploadingAvatar(false);
+    }
+  };
+
+  const handleRemoveAvatar = async () => {
+    setUploadingAvatar(true);
+    setError(null);
+    setSuccessMsg(null);
+
+    try {
+      const updated = await profileApi.deleteAvatar();
+      updateUser({ ...user, profile_image_url: null });
+      setProfileData((prev) => ({ ...prev, profile_image_url: null }));
+      handleCancelPreview();
+      setSuccessMsg('Profile picture removed.');
+    } catch (err) {
+      setError(formatApiError(err) || 'Could not remove your profile picture. Please try again.');
+    } finally {
+      setUploadingAvatar(false);
     }
   };
 
@@ -392,6 +472,88 @@ export function ProfilePage() {
       {/* TAB 1: Basic Information */}
       {currentTab === 'basic' && (
         <div className="card" style={{ padding: '2rem' }}>
+          {/* Profile Picture Section */}
+          <div
+            style={{
+              display: 'flex',
+              alignItems: 'center',
+              gap: '1.5rem',
+              padding: '1.25rem 1.5rem',
+              background: '#f8fafc',
+              border: '1px solid var(--border)',
+              borderRadius: 'var(--radius-lg)',
+              marginBottom: '2rem',
+            }}
+          >
+            <ProfileAvatar
+              src={previewUrl || profileData.profile_image_url}
+              name={profileData.name}
+              role={user?.role}
+              size={72}
+            />
+
+            <div style={{ flex: 1 }}>
+              <h3 style={{ fontSize: '1rem', fontWeight: 700, margin: '0 0 0.25rem 0', color: 'var(--text-main)' }}>
+                Profile Picture
+              </h3>
+              <p style={{ margin: '0 0 0.75rem 0', fontSize: '0.825rem', color: 'var(--text-muted)' }}>
+                {previewUrl ? 'Previewing selected image. Click "Save Photo" to apply.' : 'PNG, JPG or WebP up to 5 MB.'}
+              </p>
+
+              <input
+                ref={fileInputRef}
+                type="file"
+                accept="image/jpeg,image/png,image/webp"
+                style={{ display: 'none' }}
+                onChange={handleFileSelect}
+              />
+
+              <div style={{ display: 'flex', alignItems: 'center', gap: '0.6rem', flexWrap: 'wrap' }}>
+                {previewUrl ? (
+                  <>
+                    <button
+                      type="button"
+                      className="btn btn-primary btn-sm"
+                      onClick={handleUploadAvatar}
+                      disabled={uploadingAvatar}
+                    >
+                      {uploadingAvatar ? 'Uploading...' : 'Save Photo'}
+                    </button>
+                    <button
+                      type="button"
+                      className="btn btn-secondary btn-sm"
+                      onClick={handleCancelPreview}
+                      disabled={uploadingAvatar}
+                    >
+                      Cancel
+                    </button>
+                  </>
+                ) : (
+                  <>
+                    <button
+                      type="button"
+                      className="btn btn-secondary btn-sm"
+                      onClick={() => fileInputRef.current?.click()}
+                    >
+                      {profileData.profile_image_url ? 'Change Photo' : 'Upload Photo'}
+                    </button>
+                    {profileData.profile_image_url && (
+                      <button
+                        type="button"
+                        className="btn btn-secondary btn-sm"
+                        style={{ color: '#dc2626', borderColor: '#fca5a5' }}
+                        onClick={handleRemoveAvatar}
+                        disabled={uploadingAvatar}
+                      >
+                        Remove Photo
+                      </button>
+                    )}
+                  </>
+                )}
+              </div>
+            </div>
+          </div>
+
           <h2 style={{ fontSize: '1.3rem', fontWeight: 700, marginBottom: '1.25rem', color: 'var(--text-main)' }}>
             Personal Details
           </h2>

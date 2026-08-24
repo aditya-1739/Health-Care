@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
+import { ProfileAvatar } from '../components/ProfileAvatar';
 
 export function LandingPage() {
   const { user, isAuthenticated, logout } = useAuth();
@@ -156,9 +157,12 @@ export function LandingPage() {
 
           {/* Overlapping Appointment Confirmation Card for Visual Depth */}
           <div className="hero-demo-overlap-card">
-            <div style={{ width: '42px', height: '42px', borderRadius: '50%', background: 'var(--teal-light)', color: 'var(--secondary-dark)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontWeight: 800, fontSize: '0.9rem', border: '1px solid var(--teal-border)' }}>
-              Dr
-            </div>
+            <ProfileAvatar
+              src={null}
+              name="Dr. Sarah Mehta"
+              role="DOCTOR"
+              size={42}
+            />
             <div>
               <div style={{ fontWeight: 700, fontSize: '0.9rem', color: 'var(--text-main)', display: 'flex', alignItems: 'center', gap: '0.35rem' }}>
                 Appointment Confirmed

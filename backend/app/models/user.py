@@ -36,6 +36,7 @@ class User(Base):
     status = Column(String(50), nullable=False, default="active")
     phone = Column(String(50), nullable=True)
     date_of_birth = Column(Date, nullable=True)
+    profile_image_url = Column(String(500), nullable=True)
     created_at = Column(DateTime(timezone=True), server_default=func.now(), nullable=False)
     updated_at = Column(
         DateTime(timezone=True),

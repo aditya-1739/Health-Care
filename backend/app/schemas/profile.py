@@ -30,6 +30,7 @@ class UserProfileResponse(BaseModel):
     active: Optional[bool] = None
     patient_id: Optional[int] = None
     doctor_id: Optional[int] = None
+    profile_image_url: Optional[str] = None
     created_at: datetime
 
     model_config = ConfigDict(from_attributes=True)

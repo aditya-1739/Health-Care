@@ -2,6 +2,7 @@ import React, { useState, useRef, useEffect } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import { formatDoctorName } from '../utils/format';
+import { ProfileAvatar } from './ProfileAvatar';
 
 export function UserMenu({ onNavigate }) {
   const { user, logout } = useAuth();
@@ -143,6 +144,12 @@ export function UserMenu({ onNavigate }) {
           fontWeight: 600,
         }}
       >
+        <ProfileAvatar
+          src={user.profile_image_url}
+          name={user.name}
+          role={user.role}
+          size={28}
+        />
         <span className={`user-badge ${getRoleBadgeClass(user.role)}`} style={{ fontSize: '0.75rem', padding: '2px 6px' }}>
           {user.role}
         </span>

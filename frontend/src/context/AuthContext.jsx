@@ -58,6 +58,11 @@ export function AuthProvider({ children }) {
     }
   };
 
+  const updateUser = (updatedUser) => {
+    setUser(updatedUser);
+    localStorage.setItem('user_profile', JSON.stringify(updatedUser));
+  };
+
   return (
     <AuthContext.Provider
       value={{
@@ -67,6 +72,7 @@ export function AuthProvider({ children }) {
         login,
         register,
         logout,
+        updateUser,
         isAuthenticated: !!user,
         isPatient: user?.role === 'PATIENT',
         isDoctor: user?.role === 'DOCTOR',

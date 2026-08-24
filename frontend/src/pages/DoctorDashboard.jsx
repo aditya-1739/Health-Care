@@ -2,6 +2,7 @@ import React, { useState, useEffect, useRef } from 'react';
 import { useAuth } from '../context/AuthContext';
 import { doctorApi, appointmentApi, clinicalApi, medicineApi } from '../api/client';
 import { formatDoctorName } from '../utils/format';
+import { ProfileAvatar } from '../components/ProfileAvatar';
 
 export function DoctorDashboard() {
   const { user } = useAuth();
@@ -396,11 +397,19 @@ export function DoctorDashboard() {
   return (
     <div className="main-content">
       <div style={{ marginBottom: '1.5rem', display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '1rem' }}>
-        <div>
-          <h1 style={{ fontSize: '1.75rem', fontWeight: 800 }}>{formatDoctorName(user?.name)}</h1>
-          <p style={{ color: 'var(--text-muted)' }}>
-            Doctor Console • {doctorProfile?.specialization || 'General Practice'} • {doctorProfile?.slot_duration || 30}m consultations
-          </p>
+        <div style={{ display: 'flex', alignItems: 'center', gap: '1rem' }}>
+          <ProfileAvatar
+            src={user?.profile_image_url}
+            name={user?.name}
+            role="DOCTOR"
+            size={48}
+          />
+          <div>
+            <h1 style={{ fontSize: '1.75rem', fontWeight: 800, margin: 0 }}>{formatDoctorName(user?.name)}</h1>
+            <p style={{ color: 'var(--text-muted)', margin: '0.2rem 0 0 0' }}>
+              Doctor Console • {doctorProfile?.specialization || 'General Practice'} • {doctorProfile?.slot_duration || 30}m consultations
+            </p>
+          </div>
         </div>
         <div style={{ display: 'flex', gap: '0.5rem', flexWrap: 'wrap' }}>
           <button

@@ -65,9 +65,12 @@ export function generateIdempotencyKey() {
 export async function apiRequest(endpoint, options = {}) {
   const token = localStorage.getItem('access_token');
   const headers = {
-    'Content-Type': 'application/json',
     ...(options.headers || {}),
   };
+
+  if (!(options.body instanceof FormData) && !headers['Content-Type']) {
+    headers['Content-Type'] = 'application/json';
+  }
 
   if (token) {
     headers['Authorization'] = `Bearer ${token}`;
@@ -369,6 +372,15 @@ export const profileApi = {
     apiRequest('/profile/me/change-password', {
       method: 'POST',
       body: JSON.stringify(data),
+    }),
+  uploadAvatar: (formData) =>
+    apiRequest('/profile/me/avatar', {
+      method: 'POST',
+      body: formData,
+    }),
+  deleteAvatar: () =>
+    apiRequest('/profile/me/avatar', {
+      method: 'DELETE',
     }),
 };
 

@@ -1,6 +1,6 @@
 from datetime import date, datetime, timezone
 from typing import List, Optional
-from fastapi import APIRouter, Depends, HTTPException, Request, status
+from fastapi import APIRouter, Depends, File, HTTPException, Request, UploadFile, status
 from sqlalchemy.orm import Session, joinedload
 from app.core.database import get_db
 from app.core.deps import get_current_user, log_audit, require_patient
@@ -19,6 +19,7 @@ from app.schemas.profile import (
     UserProfileUpdate,
     calculate_age,
 )
+from app.services.profile_image_service import ProfileImageService
 
 router = APIRouter(prefix="/profile", tags=["Profile"])
 
@@ -74,8 +75,82 @@ def _build_user_profile_response(user: User) -> UserProfileResponse:
         active=active,
         patient_id=patient_id,
         doctor_id=doctor_id,
+        profile_image_url=user.profile_image_url,
         created_at=user.created_at,
     )
+
+
+@router.post(
+    "/me/avatar",
+    response_model=UserProfileResponse,
+    summary="Upload and update avatar for the authenticated user",
+)
+async def upload_user_avatar(
+    file: UploadFile = File(...),
+    current_user: User = Depends(get_current_user),
+    db: Session = Depends(get_db),
+):
+    """
+    Validates, crops, normalizes to WebP 256x256, and sets the authenticated user's avatar.
+    """
+    user = (
+        db.query(User)
+        .options(joinedload(User.patient), joinedload(User.doctor))
+        .filter(User.id == current_user.id)
+        .first()
+    )
+    if not user:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="User not found")
+
+    avatar_url = await ProfileImageService.process_and_save_avatar(user, file)
+    user.profile_image_url = avatar_url
+    db.commit()
+    db.refresh(user)
+
+    log_audit(
+        db=db,
+        action="UPDATE_AVATAR",
+        resource="profile",
+        user_id=user.id,
+        details={"user_id": user.id, "avatar_url": avatar_url},
+    )
+    return _build_user_profile_response(user)
+
+
+@router.delete(
+    "/me/avatar",
+    response_model=UserProfileResponse,
+    summary="Remove avatar for the authenticated user",
+)
+def delete_user_avatar(
+    current_user: User = Depends(get_current_user),
+    db: Session = Depends(get_db),
+):
+    """
+    Deletes the current avatar file and resets the profile_image_url to None.
+    """
+    user = (
+        db.query(User)
+        .options(joinedload(User.patient), joinedload(User.doctor))
+        .filter(User.id == current_user.id)
+        .first()
+    )
+    if not user:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="User not found")
+
+    ProfileImageService.delete_avatar_file(user.profile_image_url)
+    user.profile_image_url = None
+    db.commit()
+    db.refresh(user)
+
+    log_audit(
+        db=db,
+        action="DELETE_AVATAR",
+        resource="profile",
+        user_id=user.id,
+        details={"user_id": user.id},
+    )
+    return _build_user_profile_response(user)
 
 
 @router.get(

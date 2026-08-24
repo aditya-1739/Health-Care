@@ -104,6 +104,13 @@ app.include_router(calendar_router, prefix="/api")
 app.include_router(medicines_router, prefix="/api")
 app.include_router(profile_router, prefix="/api")
 
+# Static files mount for profile avatars & media uploads
+import os
+from fastapi.staticfiles import StaticFiles
+
+os.makedirs(settings.AVATAR_UPLOAD_DIR, exist_ok=True)
+app.mount("/uploads", StaticFiles(directory=settings.UPLOAD_DIR), name="uploads")
+
 
 @app.get("/", tags=["Root"])
 def root():

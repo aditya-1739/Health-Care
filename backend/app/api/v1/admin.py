@@ -573,6 +573,7 @@ def get_admin_patients(
                 status=p.user.status if p.user else "active",
                 created_at=p.created_at,
                 appointments_count=app_count,
+                profile_image_url=p.user.profile_image_url if p.user else None,
             )
         )
     return results

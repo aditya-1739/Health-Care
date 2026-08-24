@@ -54,6 +54,7 @@ def list_doctors(
                 bio=doc.bio,
                 slot_duration=doc.slot_duration,
                 active=doc.active,
+                profile_image_url=doc.user.profile_image_url,
                 working_hours=[
                     WorkingHoursResponse(
                         id=wh.id,
@@ -99,6 +100,7 @@ def get_doctor_by_id(
         bio=doctor.bio,
         slot_duration=doctor.slot_duration,
         active=doctor.active,
+        profile_image_url=doctor.user.profile_image_url,
         working_hours=[
             WorkingHoursResponse(
                 id=wh.id,

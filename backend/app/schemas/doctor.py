@@ -66,6 +66,7 @@ class DoctorPublicResponse(BaseModel):
     bio: Optional[str] = None
     slot_duration: int
     active: bool
+    profile_image_url: Optional[str] = None
     working_hours: List[WorkingHoursResponse] = []
 
     model_config = ConfigDict(from_attributes=True)

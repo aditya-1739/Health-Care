@@ -3,6 +3,7 @@ import { useSearchParams } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import { adminApi, doctorApi, appointmentApi } from '../api/client';
 import { formatDoctorName } from '../utils/format';
+import { ProfileAvatar } from '../components/ProfileAvatar';
 
 export function AdminDashboard() {
   const { user } = useAuth();
@@ -329,13 +330,21 @@ export function AdminDashboard() {
     <div className="main-content" style={{ maxWidth: '1240px', margin: '0 auto', padding: '2rem 1.5rem' }}>
       {/* Header */}
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1.5rem', flexWrap: 'wrap', gap: '1rem' }}>
-        <div>
-          <h1 style={{ fontSize: '1.85rem', fontWeight: 800, margin: 0, color: 'var(--text-main)' }}>
-            System Administration Console
-          </h1>
-          <p style={{ color: 'var(--text-muted)', fontSize: '0.95rem', margin: '0.25rem 0 0 0' }}>
-            Multi-clinic operations, staff provisioning, user profiles, clinical leaves, and reliability metrics.
-          </p>
+        <div style={{ display: 'flex', alignItems: 'center', gap: '1rem' }}>
+          <ProfileAvatar
+            src={user?.profile_image_url}
+            name={user?.name}
+            role="ADMIN"
+            size={48}
+          />
+          <div>
+            <h1 style={{ fontSize: '1.85rem', fontWeight: 800, margin: 0, color: 'var(--text-main)' }}>
+              System Administration Console
+            </h1>
+            <p style={{ color: 'var(--text-muted)', fontSize: '0.95rem', margin: '0.25rem 0 0 0' }}>
+              Multi-clinic operations, staff provisioning, user profiles, clinical leaves, and reliability metrics.
+            </p>
+          </div>
         </div>
         <span className="user-badge badge-admin" style={{ fontSize: '0.85rem', padding: '4px 10px' }}>
           ROOT ADMINISTRATOR
@@ -694,7 +703,12 @@ export function AdminDashboard() {
                   {allUsers.map((u) => (
                     <tr key={u.id}>
                       <td>#{u.id}</td>
-                      <td style={{ fontWeight: 600 }}>{u.role === 'DOCTOR' ? formatDoctorName(u.name) : u.name}</td>
+                      <td style={{ fontWeight: 600 }}>
+                        <div style={{ display: 'flex', alignItems: 'center', gap: '0.6rem' }}>
+                          <ProfileAvatar src={u.profile_image_url} name={u.name} role={u.role} size={28} />
+                          <span>{u.role === 'DOCTOR' ? formatDoctorName(u.name) : u.name}</span>
+                        </div>
+                      </td>
                       <td style={{ fontSize: '0.85rem' }}>{u.email}</td>
                       <td>
                         <span className={`user-badge ${u.role === 'PATIENT' ? 'badge-patient' : u.role === 'DOCTOR' ? 'badge-doctor' : 'badge-admin'}`}>
@@ -767,7 +781,12 @@ export function AdminDashboard() {
                   {patients.map((p) => (
                     <tr key={p.id}>
                       <td>#{p.id}</td>
-                      <td style={{ fontWeight: 600 }}>{p.name}</td>
+                      <td style={{ fontWeight: 600 }}>
+                        <div style={{ display: 'flex', alignItems: 'center', gap: '0.6rem' }}>
+                          <ProfileAvatar src={p.profile_image_url} name={p.name} role="PATIENT" size={28} />
+                          <span>{p.name}</span>
+                        </div>
+                      </td>
                       <td style={{ fontSize: '0.85rem' }}>{p.email}</td>
                       <td style={{ fontSize: '0.85rem' }}>{p.phone || '—'}</td>
                       <td><span className="user-badge">{p.appointments_count} visit(s)</span></td>
@@ -1039,13 +1058,21 @@ export function AdminDashboard() {
         <div style={{ position: 'fixed', top: 0, left: 0, right: 0, bottom: 0, background: 'rgba(0,0,0,0.5)', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 1000, padding: '1rem' }}>
           <div className="card" style={{ maxWidth: '680px', width: '100%', maxHeight: '90vh', overflowY: 'auto', padding: '1.75rem' }}>
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1.25rem', borderBottom: '1px solid var(--border)', paddingBottom: '0.75rem' }}>
-              <div>
-                <h3 style={{ margin: 0, fontSize: '1.3rem', fontWeight: 800 }}>
-                  User Profile #{selectedUserDetail.user.id}: {selectedUserDetail.user.name}
-                </h3>
-                <span className={`user-badge ${selectedUserDetail.user.role === 'PATIENT' ? 'badge-patient' : selectedUserDetail.user.role === 'DOCTOR' ? 'badge-doctor' : 'badge-admin'}`} style={{ marginTop: '4px', display: 'inline-block' }}>
-                  {selectedUserDetail.user.role}
-                </span>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '1rem' }}>
+                <ProfileAvatar
+                  src={selectedUserDetail.user.profile_image_url}
+                  name={selectedUserDetail.user.name}
+                  role={selectedUserDetail.user.role}
+                  size={52}
+                />
+                <div>
+                  <h3 style={{ margin: 0, fontSize: '1.3rem', fontWeight: 800 }}>
+                    User Profile #{selectedUserDetail.user.id}: {selectedUserDetail.user.name}
+                  </h3>
+                  <span className={`user-badge ${selectedUserDetail.user.role === 'PATIENT' ? 'badge-patient' : selectedUserDetail.user.role === 'DOCTOR' ? 'badge-doctor' : 'badge-admin'}`} style={{ marginTop: '4px', display: 'inline-block' }}>
+                    {selectedUserDetail.user.role}
+                  </span>
+                </div>
               </div>
               <button type="button" className="btn btn-secondary btn-sm" onClick={() => setSelectedUserDetail(null)}>✕ Close</button>
             </div>

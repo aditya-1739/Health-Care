@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { useAuth } from '../context/AuthContext';
 import { patientApi, doctorApi, appointmentApi, clinicalApi, calendarApi, medicineApi, generateIdempotencyKey } from '../api/client';
 import { formatDoctorName } from '../utils/format';
+import { ProfileAvatar } from '../components/ProfileAvatar';
 
 export function PatientDashboard() {
   const { user } = useAuth();
@@ -346,12 +347,20 @@ export function PatientDashboard() {
 
   return (
     <div className="main-content">
-      <div style={{ marginBottom: '1.5rem', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-        <div>
-          <h1 style={{ fontSize: '1.75rem', fontWeight: 800 }}>Welcome, {user?.name}</h1>
-          <p style={{ color: 'var(--text-muted)' }}>Patient Portal • Healthcare Appointment Manager</p>
+      <div style={{ marginBottom: '1.5rem', display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '1rem' }}>
+        <div style={{ display: 'flex', alignItems: 'center', gap: '1rem' }}>
+          <ProfileAvatar
+            src={user?.profile_image_url}
+            name={user?.name}
+            role="PATIENT"
+            size={48}
+          />
+          <div>
+            <h1 style={{ fontSize: '1.75rem', fontWeight: 800, margin: 0 }}>Welcome, {user?.name}</h1>
+            <p style={{ color: 'var(--text-muted)', margin: '0.2rem 0 0 0' }}>Patient Portal • Healthcare Appointment Manager</p>
+          </div>
         </div>
-        <div style={{ display: 'flex', gap: '0.5rem', alignItems: 'center' }}>
+        <div style={{ display: 'flex', gap: '0.5rem', alignItems: 'center', flexWrap: 'wrap' }}>
           {calStatus.connected ? (
             <button className="btn btn-secondary btn-sm" onClick={handleDisconnectCalendar} title="Google Calendar Synced">
               📅 Synced with Google Calendar (Disconnect)
@@ -414,9 +423,21 @@ export function PatientDashboard() {
             <div className="grid-3">
               {doctors.map((doc) => (
                 <div key={doc.id} className="card" style={{ background: '#f8fafc', borderColor: '#cbd5e1' }}>
-                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '0.5rem' }}>
-                    <h4 style={{ fontSize: '1.1rem', fontWeight: 700 }}>{formatDoctorName(doc.name)}</h4>
-                    <span className="user-badge badge-doctor">{doc.specialization}</span>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem', marginBottom: '0.75rem' }}>
+                    <ProfileAvatar
+                      src={doc.profile_image_url}
+                      name={doc.name}
+                      role="DOCTOR"
+                      size={42}
+                    />
+                    <div style={{ flex: 1, minWidth: 0 }}>
+                      <h4 style={{ fontSize: '1.05rem', fontWeight: 700, margin: 0, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+                        {formatDoctorName(doc.name)}
+                      </h4>
+                      <span className="user-badge badge-doctor" style={{ fontSize: '0.75rem', marginTop: '2px', display: 'inline-block' }}>
+                        {doc.specialization}
+                      </span>
+                    </div>
                   </div>
                   <p style={{ fontSize: '0.85rem', color: 'var(--text-muted)', marginBottom: '1rem', minHeight: '40px' }}>
                     {doc.bio || 'General practice specialist committed to patient well-being.'}

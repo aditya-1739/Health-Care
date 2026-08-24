@@ -69,3 +69,7 @@ ehthumbs.db
 # Logs
 logs/
 *.log
+
+# Uploaded media
+uploads/*
+!uploads/.gitkeep

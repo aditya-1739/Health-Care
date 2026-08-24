@@ -79,6 +79,7 @@ def register_patient(
         status=new_user.status,
         patient_id=new_user.patient.id if new_user.patient else None,
         doctor_id=None,
+        profile_image_url=new_user.profile_image_url,
     )
 
 
@@ -138,6 +139,7 @@ def login(
             status=user.status,
             patient_id=patient_id,
             doctor_id=doctor_id,
+            profile_image_url=user.profile_image_url,
         ),
     )
 
@@ -162,6 +164,7 @@ def get_current_user_profile(
         status=current_user.status,
         patient_id=patient_id,
         doctor_id=doctor_id,
+        profile_image_url=current_user.profile_image_url,
     )
 
 

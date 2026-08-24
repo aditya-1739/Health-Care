@@ -49,6 +49,12 @@ class Settings(BaseSettings):
     CELERY_RESULT_BACKEND: str = "redis://localhost:6379/0"
     USE_IN_PROCESS_WORKER: bool = True
 
+    # Profile Image Storage Settings
+    PROFILE_IMAGE_STORAGE: str = "local"
+    UPLOAD_DIR: str = "uploads"
+    AVATAR_UPLOAD_DIR: str = "uploads/avatars"
+    MAX_AVATAR_SIZE_BYTES: int = 5 * 1024 * 1024  # 5 MB
+
     # Rate Limiting (Requests / minute)
     RATE_LIMIT_AUTH_PER_MINUTE: int = 20
     RATE_LIMIT_BOOKING_PER_MINUTE: int = 30

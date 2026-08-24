@@ -31,5 +31,6 @@ class UserResponse(BaseModel):
     created_at: datetime
     patient_id: Optional[int] = None
     doctor_id: Optional[int] = None
+    profile_image_url: Optional[str] = None
 
     model_config = ConfigDict(from_attributes=True)
