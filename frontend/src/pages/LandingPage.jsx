@@ -164,7 +164,7 @@ export function LandingPage() {
                 Appointment Confirmed
                 <span style={{ color: 'var(--secondary)', fontSize: '0.85rem' }}>✓</span>
               </div>
-              <div style={{ fontSize: '0.8rem', color: 'var(--text-muted)' }}>Today • 4:00 PM • Dr. Sarah Connor</div>
+              <div style={{ fontSize: '0.8rem', color: 'var(--text-muted)' }}>Today • 4:00 PM • Dr. Sarah Mehta</div>
             </div>
             <span className="user-badge badge-doctor" style={{ fontSize: '0.75rem', padding: '0.25rem 0.55rem', marginLeft: 'auto' }}>
               Confirmed

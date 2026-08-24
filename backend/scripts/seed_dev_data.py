@@ -1,12 +1,17 @@
 """
-Development Seed Script.
-WARNING: This script is intended strictly for local development and testing demonstrations.
-It will REFUSE to run if ENVIRONMENT == 'production'.
-Run with: python backend/scripts/seed_dev_data.py
+Healthcare Appointment Manager — System Seed Script.
+Seeds the platform with:
+- 1 System Administrator account
+- 4 Fictional doctor profiles across key specializations with standard working hours (Mon-Fri 09:00-17:00)
+- 0 Patients (patients register themselves via /register)
+- 0 Synthetic appointments or medical records (clean operational state)
+
+Usage:
+  python backend/scripts/seed_dev_data.py
 """
 import os
 import sys
-from datetime import date, datetime, time, timedelta, timezone
+from datetime import time
 
 # Ensure project root is in sys.path
 sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), "..")))
@@ -14,61 +19,78 @@ sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), "..")
 from app.core.config import settings
 from app.core.database import Base, SessionLocal, engine
 from app.core.security import get_password_hash
-from app.models.appointment import Appointment, AppointmentStatus
-from app.models.user import Doctor, DoctorWorkingHours, Patient, User, UserRole
+from app.models.user import Doctor, DoctorWorkingHours, User, UserRole
 
 
-def seed_development_data():
-    if settings.ENVIRONMENT == "production":
-        raise RuntimeError(
-            "CRITICAL SAFETY CHECK: Seed script cannot be run when ENVIRONMENT=production!"
-        )
-
-    print("[SEED] Running database schema creation...")
+def seed_system_data():
+    print("[SEED] Ensuring database schema is synchronized...")
     Base.metadata.create_all(bind=engine)
     db = SessionLocal()
 
     try:
-        # 1. Seed Admin
-        admin_email = "admin.demo@hospital.org"
+        # 1. Seed System Administrator
+        admin_email = os.getenv("ADMIN_EMAIL", "admin@hospital.com")
+        admin_pass = os.getenv("ADMIN_PASSWORD", "AdminPass123!")
+        admin_name = os.getenv("ADMIN_NAME", "System Administrator")
+
         admin = db.query(User).filter(User.email == admin_email).first()
         if not admin:
             admin = User(
-                name="Demo System Administrator",
+                name=admin_name,
                 email=admin_email,
-                password_hash=get_password_hash("AdminDemo123!"),
+                password_hash=get_password_hash(admin_pass),
                 role=UserRole.ADMIN,
                 status="active",
             )
             db.add(admin)
-            print(f"[SEED] Created Admin: {admin_email} / AdminDemo123!")
+            print(f"[SEED] Created System Administrator: {admin_email}")
+        else:
+            # Update name if previously demo
+            if admin.name != admin_name:
+                admin.name = admin_name
+                print(f"[SEED] Updated Administrator name: {admin_name}")
 
-        # 2. Seed Doctors
-        doc_data = [
+        # 2. Seed 4 Fictional Doctors
+        doctors_data = [
             {
-                "name": "Dr. Alice Smith (Demo)",
-                "email": "dr.smith.demo@hospital.org",
+                "name": "Dr. Sarah Mehta",
+                "email": "sarah.mehta@hospital-care.example",
                 "specialization": "Cardiology",
-                "bio": "Cardiology specialist with 12 years clinical experience.",
+                "bio": "Specialist focused on preventive cardiovascular care and long-term patient wellbeing.",
                 "slot_duration": 30,
             },
             {
-                "name": "Dr. Robert Jones (Demo)",
-                "email": "dr.jones.demo@hospital.org",
+                "name": "Dr. Arjun Kapoor",
+                "email": "arjun.kapoor@hospital-care.example",
+                "specialization": "General Medicine",
+                "bio": "Experienced primary care physician dedicated to comprehensive diagnostics and family healthcare.",
+                "slot_duration": 30,
+            },
+            {
+                "name": "Dr. Neha Sharma",
+                "email": "neha.sharma@hospital-care.example",
                 "specialization": "Dermatology",
-                "bio": "Certified dermatologist focusing on preventative care.",
+                "bio": "Clinical dermatologist providing modern dermatological care and skin wellness consultations.",
+                "slot_duration": 30,
+            },
+            {
+                "name": "Dr. Rohan Malhotra",
+                "email": "rohan.malhotra@hospital-care.example",
+                "specialization": "Orthopedics",
+                "bio": "Orthopedic specialist focusing on joint health, sports mobility, and musculoskeletal recovery.",
                 "slot_duration": 30,
             },
         ]
 
-        doctors = []
-        for d in doc_data:
+        doc_default_pass = os.getenv("DOCTOR_DEFAULT_PASSWORD", "DoctorPass123!")
+
+        for d in doctors_data:
             doc_user = db.query(User).filter(User.email == d["email"]).first()
             if not doc_user:
                 doc_user = User(
                     name=d["name"],
                     email=d["email"],
-                    password_hash=get_password_hash("DoctorDemo123!"),
+                    password_hash=get_password_hash(doc_default_pass),
                     role=UserRole.DOCTOR,
                     status="active",
                 )
@@ -95,56 +117,17 @@ def seed_development_data():
                     )
                     db.add(wh)
 
-                print(f"[SEED] Created Doctor: {d['email']} / DoctorDemo123!")
-                doctors.append(doctor)
+                print(f"[SEED] Created Doctor: {d['name']} ({d['specialization']}) - {d['email']}")
             else:
-                doctors.append(doc_user.doctor)
-
-        # 3. Seed Patients
-        pat_data = [
-            {"name": "Alice Green (Demo Patient)", "email": "patient.alice.demo@example.com", "phone": "555-0101"},
-            {"name": "Bob White (Demo Patient)", "email": "patient.bob.demo@example.com", "phone": "555-0202"},
-        ]
-
-        patients = []
-        for p in pat_data:
-            pat_user = db.query(User).filter(User.email == p["email"]).first()
-            if not pat_user:
-                pat_user = User(
-                    name=p["name"],
-                    email=p["email"],
-                    password_hash=get_password_hash("PatientDemo123!"),
-                    role=UserRole.PATIENT,
-                    status="active",
-                )
-                db.add(pat_user)
-                db.flush()
-
-                patient = Patient(user_id=pat_user.id, phone=p["phone"])
-                db.add(patient)
-                db.flush()
-                print(f"[SEED] Created Patient: {p['email']} / PatientDemo123!")
-                patients.append(patient)
-            else:
-                patients.append(pat_user.patient)
-
-        # 4. Seed sample confirmed appointment
-        if doctors and patients:
-            sample_start = datetime.now(timezone.utc) + timedelta(days=2, hours=2)
-            existing_app = db.query(Appointment).filter(Appointment.doctor_id == doctors[0].id).first()
-            if not existing_app:
-                app = Appointment(
-                    patient_id=patients[0].id,
-                    doctor_id=doctors[0].id,
-                    start_time=sample_start,
-                    end_time=sample_start + timedelta(minutes=30),
-                    status=AppointmentStatus.CONFIRMED,
-                )
-                db.add(app)
-                print("[SEED] Created sample confirmed appointment.")
+                # Update info if already present
+                doc_user.name = d["name"]
+                if doc_user.doctor:
+                    doc_user.doctor.specialization = d["specialization"]
+                    doc_user.doctor.bio = d["bio"]
+                    doc_user.doctor.slot_duration = d["slot_duration"]
 
         db.commit()
-        print("[SEED] Development database seeding completed successfully.")
+        print("[SEED] System initialization completed successfully. Database is clean and operational.")
 
     except Exception as e:
         db.rollback()
@@ -155,4 +138,4 @@ def seed_development_data():
 
 
 if __name__ == "__main__":
-    seed_development_data()
+    seed_system_data()
