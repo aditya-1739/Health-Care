@@ -110,6 +110,7 @@ from fastapi.staticfiles import StaticFiles
 
 os.makedirs(settings.AVATAR_UPLOAD_DIR, exist_ok=True)
 app.mount("/uploads", StaticFiles(directory=settings.UPLOAD_DIR), name="uploads")
+app.mount("/api/uploads", StaticFiles(directory=settings.UPLOAD_DIR), name="api_uploads")
 
 
 @app.get("/", tags=["Root"])

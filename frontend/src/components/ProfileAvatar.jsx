@@ -51,8 +51,8 @@ export function ProfileAvatar({
   // Handle URL normalization (relative /uploads/ vs full URL)
   let resolvedSrc = src;
   if (src && src.startsWith('/uploads/')) {
-    // In dev / docker, backend API serves /uploads or proxy handles it
-    resolvedSrc = src;
+    const rawBase = import.meta.env.VITE_API_BASE_URL || '';
+    resolvedSrc = rawBase ? `${rawBase.replace(/\/$/, '')}${src}` : src;
   }
 
   // SVG Fallback based on Role

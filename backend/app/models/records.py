@@ -260,10 +260,51 @@ class MedicationReminder(Base):
 
     medication = relationship("PrescriptionMedication", back_populates="reminders")
     patient = relationship("Patient", back_populates="medication_reminders")
+    intake = relationship("MedicationIntake", back_populates="reminder", uselist=False, cascade="all, delete-orphan")
 
     __table_args__ = (
         UniqueConstraint("prescription_medication_id", "scheduled_at", name="uq_med_reminder_sched"),
     )
+
+
+class IntakeStatus(str, enum.Enum):
+    PENDING = "PENDING"
+    TAKEN = "TAKEN"
+    MISSED = "MISSED"
+    CANCELLED = "CANCELLED"
+
+
+class MedicationIntake(Base):
+    __tablename__ = "medication_intakes"
+
+    id = Column(Integer, primary_key=True, index=True)
+    reminder_id = Column(
+        Integer,
+        ForeignKey("medication_reminders.id", ondelete="CASCADE"),
+        unique=True,
+        nullable=False,
+        index=True,
+    )
+    patient_id = Column(
+        Integer,
+        ForeignKey("patients.id", ondelete="CASCADE"),
+        nullable=False,
+        index=True,
+    )
+    scheduled_at = Column(DateTime(timezone=True), nullable=False, index=True)
+    taken_at = Column(DateTime(timezone=True), nullable=True)
+    status = Column(Enum(IntakeStatus), default=IntakeStatus.PENDING, nullable=False, index=True)
+    notes = Column(String(255), nullable=True)
+    created_at = Column(DateTime(timezone=True), server_default=func.now(), nullable=False)
+    updated_at = Column(
+        DateTime(timezone=True),
+        server_default=func.now(),
+        onupdate=func.now(),
+        nullable=False,
+    )
+
+    reminder = relationship("MedicationReminder", back_populates="intake")
+    patient = relationship("Patient")
 
 
 class Notification(Base):

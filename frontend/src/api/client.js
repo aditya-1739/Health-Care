@@ -1,4 +1,5 @@
-const API_BASE_URL = '/api';
+const RAW_BASE = import.meta.env.VITE_API_BASE_URL || '';
+const API_BASE_URL = RAW_BASE ? `${RAW_BASE.replace(/\/$/, '')}/api` : '/api';
 
 /**
  * Formats API errors into clean, user-friendly sentences.
@@ -265,6 +266,12 @@ export const clinicalApi = {
       body: JSON.stringify({ status }),
     }),
   getMyMedicationReminders: () => apiRequest('/patients/me/medication-reminders'),
+  getMyMedicationSchedule: (tzOffsetHours = 0) =>
+    apiRequest(`/patients/me/medication-schedule?tz_offset_hours=${tzOffsetHours}`),
+  markReminderTaken: (reminderId) =>
+    apiRequest(`/patients/me/medication-reminders/${reminderId}/taken`, {
+      method: 'POST',
+    }),
 };
 
 export const calendarApi = {

@@ -22,7 +22,10 @@ from app.schemas.clinical import (
     AISummaryResponse,
     ClinicalNoteCreate,
     ClinicalNoteResponse,
+    DoseItem,
+    MedicationIntakeResponse,
     MedicationReminderResponse,
+    MedicationScheduleResponse,
     PrescriptionCreate,
     PrescriptionMedicationResponse,
     PrescriptionMedicationStatusUpdate,
@@ -459,4 +462,115 @@ def get_my_medication_reminders(
         .order_by(MedicationReminder.scheduled_at.asc())
         .all()
     )
-    return reminders
+    results = []
+    for r in reminders:
+        intake_stat = r.intake.status.value if r.intake and hasattr(r.intake.status, "value") else (str(r.intake.status) if r.intake else None)
+        taken_time = r.intake.taken_at if (r.intake and intake_stat == "TAKEN") else None
+        results.append(
+            MedicationReminderResponse(
+                id=r.id,
+                prescription_medication_id=r.prescription_medication_id,
+                patient_id=r.patient_id,
+                medication_name=r.medication_name,
+                dosage=r.dosage,
+                scheduled_at=r.scheduled_at,
+                status=r.status,
+                sent_at=r.sent_at,
+                intake_status=intake_stat,
+                taken_at=taken_time,
+                created_at=r.created_at,
+            )
+        )
+    return results
+
+
+@router.post(
+    "/patients/me/medication-reminders/{reminder_id}/taken",
+    response_model=MedicationIntakeResponse,
+    summary="Mark a scheduled medication reminder as taken",
+)
+def mark_reminder_as_taken(
+    reminder_id: int,
+    current_user: User = Depends(require_patient),
+    db: Session = Depends(get_db),
+):
+    """
+    Patient marks a scheduled medication dose as taken.
+    Guarantees:
+    - Authenticated PATIENT role.
+    - Patient isolation: Verifies reminder belongs to authenticated patient.
+    - Idempotent: repeated clicks return existing taken intake record without duplicate entries.
+    """
+    if not current_user.patient:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="Patient profile not found",
+        )
+
+    try:
+        result = MedicationService.record_intake(
+            db=db,
+            reminder_id=reminder_id,
+            patient_id=current_user.patient.id,
+        )
+    except PermissionError:
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail="Access denied: medication reminder belongs to another patient",
+        )
+    except ValueError as ve:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail=str(ve),
+        )
+
+    if not result:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="Medication reminder not found",
+        )
+
+    intake, reminder, is_new = result
+    return MedicationIntakeResponse(
+        id=intake.id,
+        reminder_id=reminder.id,
+        patient_id=intake.patient_id,
+        medication_name=reminder.medication_name,
+        dosage=reminder.dosage,
+        scheduled_at=intake.scheduled_at,
+        taken_at=intake.taken_at,
+        status=intake.status.value if hasattr(intake.status, "value") else str(intake.status),
+        notes=intake.notes,
+        created_at=intake.created_at,
+        updated_at=intake.updated_at,
+    )
+
+
+@router.get(
+    "/patients/me/medication-schedule",
+    response_model=MedicationScheduleResponse,
+    summary="Get structured medication schedule, next dose countdown, today's doses, and history",
+)
+def get_my_medication_schedule(
+    tz_offset_hours: int = 0,
+    current_user: User = Depends(require_patient),
+    db: Session = Depends(get_db),
+):
+    """
+    Get patient-centric structured medication schedule:
+    - next_dose: Earliest due / upcoming pending dose with countdown target.
+    - today_doses: Chronological doses for today in patient's timezone.
+    - upcoming_doses: Next future doses.
+    - active_medications: Active prescription courses and remaining doses.
+    - history: Completed/taken and missed doses.
+    """
+    if not current_user.patient:
+        return MedicationScheduleResponse()
+
+    schedule_data = MedicationService.get_patient_schedule(
+        db=db,
+        patient_id=current_user.patient.id,
+        tz_offset_hours=tz_offset_hours,
+    )
+    return schedule_data
+

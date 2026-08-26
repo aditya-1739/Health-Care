@@ -25,6 +25,7 @@ class UserProfileResponse(BaseModel):
     status: str
     patient_id: Optional[int] = None
     doctor_id: Optional[int] = None
+    profile_image_url: Optional[str] = None
 
     model_config = ConfigDict(from_attributes=True)
 

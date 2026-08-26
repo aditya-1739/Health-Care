@@ -141,6 +141,69 @@ class MedicationReminderResponse(BaseModel):
     scheduled_at: datetime
     status: ReminderStatus
     sent_at: Optional[datetime] = None
+    intake_status: Optional[str] = None
+    taken_at: Optional[datetime] = None
     created_at: datetime
 
     model_config = ConfigDict(from_attributes=True)
+
+
+class MedicationIntakeResponse(BaseModel):
+    id: int
+    reminder_id: int
+    patient_id: int
+    medication_name: str
+    dosage: str
+    scheduled_at: datetime
+    taken_at: Optional[datetime] = None
+    status: str
+    notes: Optional[str] = None
+    created_at: datetime
+    updated_at: datetime
+
+    model_config = ConfigDict(from_attributes=True)
+
+
+class DoseItem(BaseModel):
+    reminder_id: int
+    prescription_medication_id: int
+    medication_name: str
+    dosage: str
+    frequency: Optional[str] = None
+    instructions: Optional[str] = None
+    doctor_name: Optional[str] = None
+    scheduled_at: datetime
+    status: str  # "PENDING" | "DUE_NOW" | "TAKEN" | "MISSED" | "CANCELLED"
+    is_due: bool = False
+    taken_at: Optional[datetime] = None
+    doses_remaining: int = 0
+    total_doses: int = 0
+    completed_doses: int = 0
+
+
+class ActiveMedicationSummary(BaseModel):
+    medication_id: int
+    prescription_id: int
+    name: str
+    dosage: str
+    frequency: str
+    instructions: Optional[str] = None
+    doctor_name: Optional[str] = None
+    start_date: date
+    end_date: date
+    status: str
+    total_doses: int = 0
+    completed_doses: int = 0
+    remaining_doses: int = 0
+    course_completed: bool = False
+
+
+class MedicationScheduleResponse(BaseModel):
+    next_dose: Optional[DoseItem] = None
+    today_doses: List[DoseItem] = []
+    upcoming_doses: List[DoseItem] = []
+    active_medications: List[ActiveMedicationSummary] = []
+    history: List[DoseItem] = []
+    total_active_reminders_count: int = 0
+    adherence_percentage: Optional[float] = None
+

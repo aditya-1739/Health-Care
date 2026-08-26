@@ -45,6 +45,8 @@ services:
       CELERY_BROKER_URL: redis://redis:6379/0
     ports:
       - "8000:8000"
+    volumes:
+      - uploads_data:/app/uploads
     depends_on:
       postgres:
         condition: service_healthy
@@ -64,6 +66,8 @@ services:
       DATABASE_URL: postgresql://postgres:postgrespassword@postgres:5432/healthcare_db
       REDIS_URL: redis://redis:6379/0
       CELERY_BROKER_URL: redis://redis:6379/0
+    volumes:
+      - uploads_data:/app/uploads
     depends_on:
       postgres:
         condition: service_healthy
@@ -90,3 +94,4 @@ services:
 volumes:
   postgres_data:
   redis_data:
+  uploads_data:
