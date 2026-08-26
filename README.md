@@ -5,8 +5,10 @@
 [![PostgreSQL](https://img.shields.io/badge/PostgreSQL-16-336791.svg?logo=postgresql&logoColor=white)](https://www.postgresql.org)
 [![Redis](https://img.shields.io/badge/Redis-7-DC382D.svg?logo=redis&logoColor=white)](https://redis.io)
 [![Celery](https://img.shields.io/badge/Celery-5.4-37814A.svg?logo=celery&logoColor=white)](https://docs.celeryq.dev)
-[![Docker](https://img.shields.io/badge/Docker-Compose-2496ED.svg?logo=docker&logoColor=white)](https://www.docker.com)
+[![Live Demo](https://img.shields.io/badge/Live%20Demo-Vercel-success.svg?logo=vercel&logoColor=white)](https://health-care-qahzp50c1-adityad-ev.vercel.app/)
 [![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](LICENSE)
+
+> 🌐 **Live Demo Application**: [https://health-care-qahzp50c1-adityad-ev.vercel.app/](https://health-care-qahzp50c1-adityad-ev.vercel.app/)
 
 A production-grade, secure healthcare appointment and clinical follow-up platform with atomic PostgreSQL advisory locking, transactional outbox dispatching, clinical symptom intake, structured digital prescriptions, authoritative NIH RxNorm / DailyMed medicine search, and role-based access control.
 
