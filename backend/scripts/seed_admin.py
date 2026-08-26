@@ -13,7 +13,7 @@ import logging
 sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), "..")))
 
 from app.core.database import SessionLocal
-from app.core.security import get_password_hash
+from app.core.security import get_password_hash, verify_password
 from app.models.user import User, UserRole
 
 logging.basicConfig(level=logging.INFO, format="%(asctime)s [%(levelname)s] %(message)s")
@@ -30,24 +30,30 @@ def seed_admin():
     try:
         existing_admin = db.query(User).filter(User.email == admin_email).first()
         if existing_admin:
+            role_val = existing_admin.role.value if hasattr(existing_admin.role, "value") else str(existing_admin.role)
+            is_valid_pass = verify_password(admin_password, existing_admin.password_hash)
+            
             logger.info(
-                "Admin account exists: email=%s, role=%s, status=%s",
+                "Admin account found: email=%s, role=%s, status=%s, credentials_valid=%s",
                 existing_admin.email,
-                existing_admin.role.value if hasattr(existing_admin.role, "value") else existing_admin.role,
+                role_val,
                 existing_admin.status,
+                is_valid_pass,
             )
-            if reset_requested:
+
+            # Synchronize if password is outdated, role/status needs correction, or reset requested
+            if not is_valid_pass or role_val != "ADMIN" or existing_admin.status != "active" or reset_requested:
                 existing_admin.password_hash = get_password_hash(admin_password)
                 existing_admin.role = UserRole.ADMIN
                 existing_admin.status = "active"
-                if admin_name:
+                if admin_name and existing_admin.name != admin_name:
                     existing_admin.name = admin_name
                 db.commit()
-                logger.info("Default admin password and role successfully synchronized (%s).", admin_email)
-                print(f"[SEED_ADMIN] Default admin password and role successfully synchronized ({admin_email}).")
+                logger.info("Admin account credentials and role successfully synchronized (%s).", admin_email)
+                print(f"[SEED_ADMIN] Admin account credentials and role successfully synchronized ({admin_email}).")
             else:
-                logger.info("Admin already exists (%s). Reset flag not set.", admin_email)
-                print(f"[SEED_ADMIN] Admin already exists ({admin_email}). Reset flag not set.")
+                logger.info("Admin account exists and credentials are valid (%s). No changes needed.", admin_email)
+                print(f"[SEED_ADMIN] Admin account exists and credentials are valid ({admin_email}).")
             return
 
         new_admin = User(

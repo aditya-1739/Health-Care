@@ -24,7 +24,12 @@ logging.basicConfig(level=logging.INFO, format="%(asctime)s [%(levelname)s] %(na
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
-    # Lifecycle context for FastAPI server (schema migrations are managed via Alembic)
+    # Execute automatic admin seed / synchronization on application startup
+    try:
+        from scripts.seed_admin import seed_admin
+        seed_admin()
+    except Exception as e:
+        logger.warning(f"[LIFESPAN] Admin seeding check encountered error: {e}")
     yield
 
 

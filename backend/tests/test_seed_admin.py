@@ -1,6 +1,6 @@
 import pytest
 from app.core.security import get_password_hash, verify_password
-from app.models.user import User, UserRole
+from app.models.user import Patient, User, UserRole
 from scripts.seed_admin import seed_admin
 
 
@@ -29,64 +29,73 @@ def test_seed_admin_idempotent_and_creates_account(db_session, monkeypatch):
     assert admin_count == 1
 
 
-def test_seed_admin_preserves_existing_when_reset_not_requested(db_session, monkeypatch):
+def test_seed_admin_syncs_outdated_password_automatically(db_session, monkeypatch):
     monkeypatch.setattr("scripts.seed_admin.SessionLocal", lambda: db_session)
-    monkeypatch.setenv("ADMIN_RESET_PASSWORD", "false")
 
-    # Set up existing admin with custom password
+    # Set up existing admin with outdated/unknown password hash
     db_session.query(User).filter(User.email == "admin@hospital.com").delete()
     existing = User(
-        name="Existing Admin",
+        name="System Administrator",
         email="admin@hospital.com",
-        password_hash=get_password_hash("CustomOldPass999!"),
+        password_hash=get_password_hash("OutdatedOldHash123!"),
         role=UserRole.ADMIN,
         status="active",
     )
     db_session.add(existing)
     db_session.commit()
 
-    # Run seed_admin -> should NOT overwrite password
+    # Run seed_admin -> should detect invalid credentials and synchronize
     seed_admin()
 
     admin = db_session.query(User).filter(User.email == "admin@hospital.com").first()
-    assert verify_password("CustomOldPass999!", admin.password_hash)
-    assert not verify_password("AdminPass123!", admin.password_hash)
+    assert verify_password("AdminPass123!", admin.password_hash)
+    assert admin.role == UserRole.ADMIN
+    assert admin.status == "active"
 
 
-def test_seed_admin_resets_password_when_flag_enabled_and_preserves_other_users(db_session, monkeypatch):
+def test_admin_and_patient_login_endpoints_e2e(client, db_session, monkeypatch):
     monkeypatch.setattr("scripts.seed_admin.SessionLocal", lambda: db_session)
-    monkeypatch.setenv("ADMIN_RESET_PASSWORD", "true")
 
-    # Create unrelated patient user
-    db_session.query(User).filter(User.email.in_(["admin@hospital.com", "patient_seed_test@example.com"])).delete()
-    patient = User(
-        name="John Patient",
-        email="patient_seed_test@example.com",
-        password_hash=get_password_hash("PatientSecret123!"),
-        role=UserRole.PATIENT,
-        status="active",
-    )
-    # Create admin with outdated password
-    admin = User(
-        name="System Administrator",
-        email="admin@hospital.com",
-        password_hash=get_password_hash("OutdatedHash123!"),
-        role=UserRole.ADMIN,
-        status="active",
-    )
-    db_session.add_all([patient, admin])
-    db_session.commit()
-
-    # Run seed_admin with reset flag
+    # Ensure admin is seeded
+    db_session.query(User).filter(User.email == "admin@hospital.com").delete()
     seed_admin()
 
-    # Verify admin password updated
-    refreshed_admin = db_session.query(User).filter(User.email == "admin@hospital.com").first()
-    assert verify_password("AdminPass123!", refreshed_admin.password_hash)
-    assert refreshed_admin.role == UserRole.ADMIN
-    assert refreshed_admin.status == "active"
+    # 1. Successful Admin Login
+    admin_login_res = client.post("/api/auth/login", json={
+        "email": "admin@hospital.com",
+        "password": "AdminPass123!"
+    })
+    assert admin_login_res.status_code == 200
+    admin_data = admin_login_res.json()
+    assert "access_token" in admin_data
+    assert admin_data["user"]["role"] == "ADMIN"
+    assert admin_data["user"]["email"] == "admin@hospital.com"
 
-    # Verify patient was untouched
-    refreshed_patient = db_session.query(User).filter(User.email == "patient_seed_test@example.com").first()
-    assert verify_password("PatientSecret123!", refreshed_patient.password_hash)
-    assert refreshed_patient.role == UserRole.PATIENT
+    # 2. Failed Admin Login (Wrong Password)
+    bad_login_res = client.post("/api/auth/login", json={
+        "email": "admin@hospital.com",
+        "password": "WrongPassword999!"
+    })
+    assert bad_login_res.status_code == 401
+    assert "Incorrect email or password" in bad_login_res.json()["detail"]
+
+    # 3. Patient Registration & Login
+    patient_email = "test_patient_login_flow@hospital.com"
+    db_session.query(User).filter(User.email == patient_email).delete()
+    db_session.commit()
+
+    reg_res = client.post("/api/auth/register", json={
+        "name": "Jane Patient",
+        "email": patient_email,
+        "password": "PatientPassword123!",
+        "phone": "+1234567890"
+    })
+    assert reg_res.status_code == 201
+
+    patient_login_res = client.post("/api/auth/login", json={
+        "email": patient_email,
+        "password": "PatientPassword123!"
+    })
+    assert patient_login_res.status_code == 200
+    patient_data = patient_login_res.json()
+    assert patient_data["user"]["role"] == "PATIENT"
