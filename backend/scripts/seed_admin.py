@@ -24,13 +24,30 @@ def seed_admin():
     admin_email = os.getenv("ADMIN_EMAIL", "admin@hospital.com").strip().lower()
     admin_password = os.getenv("ADMIN_PASSWORD", "AdminPass123!")
     admin_name = os.getenv("ADMIN_NAME", "System Administrator").strip()
+    reset_requested = os.getenv("ADMIN_RESET_PASSWORD", "false").strip().lower() in ("true", "1", "yes")
 
     db = SessionLocal()
     try:
         existing_admin = db.query(User).filter(User.email == admin_email).first()
         if existing_admin:
-            logger.info("Admin already exists (%s). No action needed.", admin_email)
-            print(f"[SEED_ADMIN] Admin already exists ({admin_email}).")
+            logger.info(
+                "Admin account exists: email=%s, role=%s, status=%s",
+                existing_admin.email,
+                existing_admin.role.value if hasattr(existing_admin.role, "value") else existing_admin.role,
+                existing_admin.status,
+            )
+            if reset_requested:
+                existing_admin.password_hash = get_password_hash(admin_password)
+                existing_admin.role = UserRole.ADMIN
+                existing_admin.status = "active"
+                if admin_name:
+                    existing_admin.name = admin_name
+                db.commit()
+                logger.info("Default admin password and role successfully synchronized (%s).", admin_email)
+                print(f"[SEED_ADMIN] Default admin password and role successfully synchronized ({admin_email}).")
+            else:
+                logger.info("Admin already exists (%s). Reset flag not set.", admin_email)
+                print(f"[SEED_ADMIN] Admin already exists ({admin_email}). Reset flag not set.")
             return
 
         new_admin = User(
@@ -47,8 +64,8 @@ def seed_admin():
 
     except Exception as e:
         db.rollback()
-        logger.error("Failed to seed admin account: %s", e, exc_info=True)
-        print(f"[SEED_ADMIN] Error creating admin: {e}")
+        logger.error("Failed to seed/sync admin account: %s", e, exc_info=True)
+        print(f"[SEED_ADMIN] Error creating/syncing admin: {e}")
         raise
     finally:
         db.close()
