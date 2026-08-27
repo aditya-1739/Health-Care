@@ -6,6 +6,7 @@ import { ProtectedRoute } from './components/ProtectedRoute';
 import { LandingPage } from './pages/LandingPage';
 import { RoleSelectionPage } from './pages/RoleSelectionPage';
 import { LoginPage } from './pages/LoginPage';
+import { AdminLoginPage } from './pages/AdminLoginPage';
 import { RegisterPage } from './pages/RegisterPage';
 import { MedicineInformation } from './pages/MedicineInformation';
 import { PatientDashboard } from './pages/PatientDashboard';
@@ -43,6 +44,7 @@ function AnimatedRoutes() {
         <Route path="/medicine-information" element={<MedicineInformation />} />
         <Route path="/medicine-information/:rxcui" element={<MedicineInformation />} />
         <Route path="/login" element={<LoginPage />} />
+        <Route path="/admin-login" element={<AdminLoginPage />} />
         <Route path="/register" element={<RegisterPage />} />
         <Route path="/unauthorized" element={<UnauthorizedPage />} />
 

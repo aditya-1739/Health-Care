@@ -1,10 +1,15 @@
 import React, { useState } from 'react';
-import { Link, useNavigate, useSearchParams } from 'react-router-dom';
+import { Link, Navigate, useNavigate, useSearchParams } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 
 export function LoginPage() {
   const [searchParams] = useSearchParams();
   const roleParam = (searchParams.get('role') || '').toLowerCase();
+
+  // If someone manually accesses /login?role=admin, redirect to dedicated /admin-login
+  if (roleParam === 'admin') {
+    return <Navigate to="/admin-login" replace />;
+  }
 
   // Strictly empty initial credentials (no demo prefill)
   const [email, setEmail] = useState('');
@@ -33,14 +38,6 @@ export function LoginPage() {
           badgeColor: '#ecfdf5',
           badgeText: 'Doctor Console',
           textColor: '#059669',
-        };
-      case 'admin':
-        return {
-          title: 'Administrator Sign In',
-          subtitle: 'Manage the healthcare platform.',
-          badgeColor: '#f5f3ff',
-          badgeText: 'Admin Console',
-          textColor: '#7c3aed',
         };
       default:
         return {

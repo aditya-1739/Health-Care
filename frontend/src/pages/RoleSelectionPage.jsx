@@ -108,8 +108,8 @@ export function RoleSelectionPage() {
           </div>
 
           <div>
-            <Link to="/login?role=admin" className="btn btn-secondary role-card-btn">
-              Continue as Admin →
+            <Link to="/admin-login" className="btn btn-secondary role-card-btn">
+              Continue as Administrator →
             </Link>
             <div style={{ marginTop: '0.75rem', textAlign: 'center', fontSize: '0.775rem', color: 'var(--text-muted)' }}>
               Administrative clearance required

@@ -99,3 +99,40 @@ def test_admin_and_patient_login_endpoints_e2e(client, db_session, monkeypatch):
     assert patient_login_res.status_code == 200
     patient_data = patient_login_res.json()
     assert patient_data["user"]["role"] == "PATIENT"
+
+    # 4. Doctor Login & Role Check
+    doctor_email = "test_doctor_auth_flow@hospital.com"
+    db_session.query(User).filter(User.email == doctor_email).delete()
+    db_session.commit()
+
+    doc_user = User(
+        name="Dr. Test Specialist",
+        email=doctor_email,
+        password_hash=get_password_hash("DoctorPassword123!"),
+        role=UserRole.DOCTOR,
+        status="active",
+    )
+    db_session.add(doc_user)
+    db_session.commit()
+
+    doc_login_res = client.post("/api/auth/login", json={
+        "email": doctor_email,
+        "password": "DoctorPassword123!"
+    })
+    assert doc_login_res.status_code == 200
+    doc_data = doc_login_res.json()
+    assert doc_data["user"]["role"] == "DOCTOR"
+
+    # 5. Non-Admin (Patient/Doctor) cannot access Admin API Dashboard
+    patient_headers = {"Authorization": f"Bearer {patient_data['access_token']}"}
+    patient_admin_res = client.get("/api/admin/dashboard", headers=patient_headers)
+    assert patient_admin_res.status_code == 403
+
+    doc_headers = {"Authorization": f"Bearer {doc_data['access_token']}"}
+    doc_admin_res = client.get("/api/admin/dashboard", headers=doc_headers)
+    assert doc_admin_res.status_code == 403
+
+    # 6. Admin can access Admin API Dashboard
+    admin_headers = {"Authorization": f"Bearer {admin_data['access_token']}"}
+    admin_dash_res = client.get("/api/admin/dashboard", headers=admin_headers)
+    assert admin_dash_res.status_code == 200
